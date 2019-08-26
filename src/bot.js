@@ -5,8 +5,8 @@ import { dataLayer } from './datalayer.js';
 import formatter from './formatter';
 import { initScheduler } from './scheduler.js';
 import { validateParty } from './validation.js';
-//This file is not checked into source control - use secret.template.js as a basis to create your own.
-import secret from './secret.js';
+//This file is not checked into source control - use bot-token.template.js as a basis to create your own.
+import token from './bot-token.js/index.js';
 const moment = require("moment");
 var cron = require('node-cron');
 
@@ -202,4 +202,4 @@ client.on('message', msg => {
 
 });
 
-client.login(secret);
+client.login(token);
