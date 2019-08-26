@@ -2,9 +2,9 @@ import { Client } from "discord.js";
 import stringArgv from "string-argv";
 
 import { dataLayer } from './datalayer.js';
-import botFormatter from './botFormatter';
+import formatter from './formatter';
 import { initScheduler } from './scheduler.js';
-import { validateParty } from './businesslogic.js';
+import { validateParty } from './validation.js';
 //This file is not checked into source control - use secret.template.js as a basis to create your own.
 import secret from './secret.js';
 const moment = require("moment");
@@ -50,8 +50,8 @@ client.on('message', msg => {
   * Help
   */
   if (msg.content == prefix + 'lphelp') {
-    const description = botFormatter.descriptions.HELP;
-    const fields = botFormatter.getHelpFields();
+    const description = formatter.descriptions.HELP;
+    const fields = formatter.getHelpFields();
     msg.channel.send({
       embed: {
         color: 0,
@@ -66,7 +66,7 @@ client.on('message', msg => {
     */
     try {
       if (tokenizedMsg.length != 5) {
-        msg.channel.send(botFormatter.errorMessages.INCORRECT_NUMBER_ARGUMENTS);
+        msg.channel.send(formatter.errorMessages.INCORRECT_NUMBER_ARGUMENTS);
         return;
       }
       const partyTopic = tokenizedMsg[1];
@@ -88,7 +88,7 @@ client.on('message', msg => {
       const { party, errors } = validateParty(partyInput);
       var response = "";
       if (errors.length > 0) {
-        response = botFormatter.generatePartyCreationErrors(errors),
+        response = formatter.generatePartyCreationErrors(errors),
           msg.channel.send(response);
       }
       else {
@@ -99,7 +99,7 @@ client.on('message', msg => {
         });
       }
     } catch (ex) {
-      msg.channel.send(botFormatter.errorMessages.CANT_SCHEDULE_PARTY);
+      msg.channel.send(formatter.errorMessages.CANT_SCHEDULE_PARTY);
       console.log(ex);
     }
   } else if (msg.content.startsWith(prefix + 'lpupcoming')) {
@@ -112,7 +112,7 @@ client.on('message', msg => {
         timezone = tokenizedMsg[1];
       }
       scheduler.getUpcoming(msg.guild.id, msg.channel.id, timezone).then(fields => {
-        fields = botFormatter.addUpcomingBottomFields(fields, timezone);
+        fields = formatter.addUpcomingBottomFields(fields, timezone);
         return msg.channel.send({
           embed: {
             color: 0,
@@ -122,7 +122,7 @@ client.on('message', msg => {
         });
       });
     } catch (ex) {
-      msg.channel.send(botFormatter.errorMessages.CANT_RETRIEVE_PARTIES);
+      msg.channel.send(formatter.errorMessages.CANT_RETRIEVE_PARTIES);
     }
   } else if (msg.content.startsWith(prefix + 'lpjoin')) {
     /*
@@ -130,25 +130,25 @@ client.on('message', msg => {
     */
     try {
       if (tokenizedMsg.length < 2) {
-        return msg.channel.send(botFormatter.errorMessages.PLEASE_SPECIFY_ID_TO_JOIN);
+        return msg.channel.send(formatter.errorMessages.PLEASE_SPECIFY_ID_TO_JOIN);
       }
       if (tokenizedMsg.length > 2) {
-        return msg.channel.send(botFormatter.errorMessages.TOO_MANY_ARGUMENTS);
+        return msg.channel.send(formatter.errorMessages.TOO_MANY_ARGUMENTS);
       }
       const partyId = tokenizedMsg[1];
       if (Number.parseInt(partyId) == NaN) {
-        return msg.channel.send(botFormatter.errorMessages.PROVIDE_NUMERIC_ID);
+        return msg.channel.send(formatter.errorMessages.PROVIDE_NUMERIC_ID);
       }
 
       scheduler.joinParty(msg.guild.id, msg.channel.id, msg.member.user.id, msg.member.user.tag, partyId).then(response => {
         msg.channel.send(response);
       }).catch(ex => {
         console.log(ex);
-        msg.channel.send(botFormatter.errorMessages.CANT_JOIN_PARTY);
+        msg.channel.send(formatter.errorMessages.CANT_JOIN_PARTY);
       });
     } catch (ex) {
       console.log(ex);
-      msg.channel.send(botFormatter.errorMessages.CANT_JOIN_PARTY);
+      msg.channel.send(formatter.errorMessages.CANT_JOIN_PARTY);
     }
   } else if (msg.content.startsWith(prefix + 'lpcancel')) {
     /* 
@@ -156,24 +156,24 @@ client.on('message', msg => {
     */
     try {
       if (tokenizedMsg.length < 2) {
-        return msg.channel.send(botFormatter.errorMessages.PLEASE_SPECIFY_ID_TO_CANCEL);
+        return msg.channel.send(formatter.errorMessages.PLEASE_SPECIFY_ID_TO_CANCEL);
       }
       if (tokenizedMsg.length > 2) {
-        return msg.channel.send(botFormatter.errorMessages.TOO_MANY_ARGUMENTS);
+        return msg.channel.send(formatter.errorMessages.TOO_MANY_ARGUMENTS);
       }
       const partyId = tokenizedMsg[1];
       if (Number.parseInt(partyId) == NaN) {
-        return msg.channel.send(botFormatter.errorMessages.PROVIDE_NUMERIC_ID);
+        return msg.channel.send(formatter.errorMessages.PROVIDE_NUMERIC_ID);
       }
       scheduler.cancelParty(msg.guild.id, msg.channel.id, msg.member, partyId).then(response => {
         msg.channel.send(response);
       }).catch(ex => {
         console.log(ex);
-        msg.channel.send(botFormatter.errorMessages.CANT_JOIN_PARTY);
+        msg.channel.send(formatter.errorMessages.CANT_JOIN_PARTY);
       });
     } catch (ex) {
       console.log(ex);
-      msg.channel.send(botFormatter.errorMessages.CANT_JOIN_PARTY);
+      msg.channel.send(formatter.errorMessages.CANT_JOIN_PARTY);
     }
   } else if (msg.content.startsWith(prefix + 'lpupdate ')) {
     /*
@@ -183,7 +183,7 @@ client.on('message', msg => {
     console.log(tokenizedMsg);
     try {
       if (tokenizedMsg.length != 5) {
-        msg.channel.send(botFormatter.errorMessages.INCORRECT_NUMBER_ARGUMENTS);
+        msg.channel.send(formatter.errorMessages.INCORRECT_NUMBER_ARGUMENTS);
         return;
       }
       const partyId = tokenizedMsg[1];
@@ -196,7 +196,7 @@ client.on('message', msg => {
     }
     catch (ex) {
       console.log(ex);
-      msg.channel.send(botFormatter.errorMessages.CANT_UPDATE_PARTY);
+      msg.channel.send(formatter.errorMessages.CANT_UPDATE_PARTY);
     }
   }
 

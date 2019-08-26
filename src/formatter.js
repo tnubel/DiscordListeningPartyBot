@@ -1,5 +1,5 @@
 /* 
-botFormatter.js
+formatter.js
 Provides rich text formatting to bot - goal of this class is just to decouple formatting from bot logic. */
 
 const moment = require('moment');
@@ -164,7 +164,7 @@ const renderPartyScheduledResult = (partyId, topic, start, end, owner, channel) 
   };
 }
 
-const botFormatter = {
+const formatter = {
   DATE_FORMAT,
   addUpcomingBottomFields,
   getHelpFields,
@@ -176,4 +176,4 @@ const botFormatter = {
   descriptions,
 }
 
-export default botFormatter;
+export default formatter;

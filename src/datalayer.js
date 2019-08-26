@@ -1,5 +1,4 @@
 import Sequelize, { STRING, DATE, Op, INTEGER, BOOLEAN } from 'sequelize';
-import { SSL_OP_NETSCAPE_CHALLENGE_BUG } from 'constants';
 const moment = require('moment');
 
 const sequelize = new Sequelize('database', 'user', 'password', {

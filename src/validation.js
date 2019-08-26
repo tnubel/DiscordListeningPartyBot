@@ -1,5 +1,5 @@
 var moment = require('moment-timezone');
-import botFormatter from './botFormatter.js';
+import formatter from './formatter.js';
 /*
 expects {
   topic,
@@ -17,22 +17,22 @@ expects {
 const validateParty = (partyInput) => {
   var errors = [];
   if (partyInput.topic.length < 5) {
-    errors.push(botFormatter.errorMessages.topicTooShort(partyInput.topic));
+    errors.push(formatter.errorMessages.topicTooShort(partyInput.topic));
   }
 
   var dateMoment;
   try {
-    dateMoment = moment.tz(partyInput.dateTime, botFormatter.DATE_FORMAT, partyInput.timeZone).utc();
+    dateMoment = moment.tz(partyInput.dateTime, formatter.DATE_FORMAT, partyInput.timeZone).utc();
     if (!dateMoment.isValid()){
-      errors.push(botFormatter.errorMessages.invalidDateFormat(partyInput.dateTime));
+      errors.push(formatter.errorMessages.invalidDateFormat(partyInput.dateTime));
     }
 
     if (dateMoment.isBefore(moment.tz())) {
-      errors.push(botFormatter.errorMessages.TIME_IN_PAST);
+      errors.push(formatter.errorMessages.TIME_IN_PAST);
     }
   } catch (ex) {
     console.log(ex);
-    errors.push(botFormatter.errorMessages.invalidDateFormat(partyInput.dateTime));
+    errors.push(formatter.errorMessages.invalidDateFormat(partyInput.dateTime));
   }
 
   if (isNaN(partyInput.duration)){

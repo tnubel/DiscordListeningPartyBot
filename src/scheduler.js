@@ -1,8 +1,12 @@
+/*
+* Scheduler.js - main business logic and controller for bot.
+*/
+
 import { Permissions } from 'discord.js';
 const moment = require('moment-timezone');
 
-import botFormatter from './botFormatter.js'
-import { validateParty } from './businesslogic.js';
+import formatter from './formatter.js/index.js'
+import { validateParty } from './validation.js/index.js';
 
 var initScheduler = (dataLayer) => {
   return {
@@ -12,10 +16,10 @@ var initScheduler = (dataLayer) => {
       const conflicts = await dataLayer.getPartiesInRange(moment(start).toDate(), moment(end).toDate(), guildId, channelId);
       if (conflicts.length === 0) {
         const result = await dataLayer.createParty(party, owner);
-        return botFormatter.renderPartyScheduledResult(result.id, topic, start, end, owner, channel);
+        return formatter.renderPartyScheduledResult(result.id, topic, start, end, owner, channel);
       }
       else {
-        return botFormatter.errorMessages.SCHEDULE_FAILURE_CONFLICTS_EXIST;
+        return formatter.errorMessages.SCHEDULE_FAILURE_CONFLICTS_EXIST;
       }
     },
     getUpcoming: async (guildId, channelId, timezone = null) => {
@@ -23,7 +27,7 @@ var initScheduler = (dataLayer) => {
       //Map each party to embedded field, pulling in enrollment data.
       var fields = await Promise.all(parties.map(async p => {
         const enrollments = await dataLayer.getEnrollmentsForParty(p.id);
-        return botFormatter.renderUpcomingParty(p, enrollments, timezone);
+        return formatter.renderUpcomingParty(p, enrollments, timezone);
       }));
 
       return fields;
@@ -36,17 +40,17 @@ var initScheduler = (dataLayer) => {
 
       var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
       if (matchingParty === null) {
-        return botFormatter.errorMessages.noPartyFound(partyId);
+        return formatter.errorMessages.noPartyFound(partyId);
       }
       var existingEnrollment = await dataLayer.findEnrollment(userId, partyId);
 
       if (existingEnrollment) {
-        return botFormatter.errorMessages.PARTY_ALREADY_JOINED;
+        return formatter.errorMessages.PARTY_ALREADY_JOINED;
       }
 
       await dataLayer.enrollUser(userId, userTag, partyId);
 
-      return botFormatter.messages.userJoinedParty(userTag, partyId, matchingParty.topic);
+      return formatter.messages.userJoinedParty(userTag, partyId, matchingParty.topic);
     },
     findAndFlagListeningPartiesHappeningSoon: async () => {
       /*
@@ -74,37 +78,37 @@ var initScheduler = (dataLayer) => {
       //Make sure party exists, is in future and is in this channel
       var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
       if (matchingParty === null) {
-        return botFormatter.errorMessages.noPartyFound(partyId);
+        return formatter.errorMessages.noPartyFound(partyId);
       }
 
       //User must be owner or able to manage messages
       const isOwner = matchingParty.username.toString() == member.user.tag.toString();
       const isMod = member.hasPermission(Permissions.FLAGS.MANAGE_MESSAGES);
       if (!isOwner && !isMod) {
-        return botFormatter.errorMessages.NO_PERMISSIONS;
+        return formatter.errorMessages.NO_PERMISSIONS;
       }
 
       const deletedCount = await dataLayer.deletePartyById(guildId, channelId, partyId);
 
       if (deletedCount > 0) {
-        return botFormatter.messages.partyCanceled(partyId, matchingParty.topic);
+        return formatter.messages.partyCanceled(partyId, matchingParty.topic);
       }
       else {
-        return botFormatter.errorMessages.CANT_CANCEL_PARTY;
+        return formatter.errorMessages.CANT_CANCEL_PARTY;
       }
     },
     updateParty: async (guildId, channelId, member, partyId, start, timeZone, duration) => {
       //Make sure party exists, is in future and is in this channel
       var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
       if (matchingParty === null) {
-        return botFormatter.errorMessages.noPartyFound(partyId);
+        return formatter.errorMessages.noPartyFound(partyId);
       }
 
       //User must be owner or able to manage messages
       const isOwner = matchingParty.username.toString() == member.user.tag.toString();
       const isMod = member.hasPermission(Permissions.FLAGS.MANAGE_MESSAGES);
       if (!isOwner && !isMod) {
-        return botFormatter.errorMessages.NO_PERMISSIONS;
+        return formatter.errorMessages.NO_PERMISSIONS;
       }
 
       const { party, errors } = validateParty({
@@ -119,7 +123,7 @@ var initScheduler = (dataLayer) => {
       });
       var response = "";
       if (errors.length > 0) {
-        response = botFormatter.generatePartyCreationErrors(errors);
+        response = formatter.generatePartyCreationErrors(errors);
         return response;
       }
 
@@ -130,10 +134,10 @@ var initScheduler = (dataLayer) => {
       });
 
       if (updatedCount > 0) {
-        return botFormatter.renderPartyScheduledResult(partyId, matchingParty.topic, party.start, party.end, member.user.tag, matchingParty.channel);
+        return formatter.renderPartyScheduledResult(partyId, matchingParty.topic, party.start, party.end, member.user.tag, matchingParty.channel);
       }
       else {
-        return botFormatter.errorMessages.CANT_UPDATE_PARTY;
+        return formatter.errorMessages.CANT_UPDATE_PARTY;
       }
     }
   }
