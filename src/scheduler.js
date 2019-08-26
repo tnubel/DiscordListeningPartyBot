@@ -5,8 +5,8 @@
 import { Permissions } from 'discord.js';
 const moment = require('moment-timezone');
 
-import formatter from './formatter.js/index.js'
-import { validateParty } from './validation.js/index.js';
+import formatter from './formatter.js'
+import { validateParty } from './validation.js';
 
 var initScheduler = (dataLayer) => {
   return {

@@ -1,1 +1,1 @@
-export default secret = "PUTYOURSECRETHERE";
+export default "PUTYOURSECRETHERE";

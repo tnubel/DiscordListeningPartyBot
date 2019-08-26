@@ -4,8 +4,8 @@
   "description": "",
   "main": "lib/bot.js",
   "scripts": {
-    "start": "node lib/bot.js",
-    "build": "babel --presets es2015 -d lib/ src",
+    "start": "node lib/bundle.js",
+    "build": "rollup src/bot.js --file lib/bundle.js --format cjs",
     "test": "npm run build && mocha"
   },
   "author": "",
@@ -20,8 +20,7 @@
     "string-argv": "^0.3.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "mocha": "^6.2.0"
+    "mocha": "^6.2.0",
+    "rollup": "^1.20.2"
   }
 }
