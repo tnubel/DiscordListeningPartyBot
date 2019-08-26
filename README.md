@@ -1,4 +1,4 @@
-"# DiscordListeningPartyBot" 
+# DiscordListeningPartyBot
 
 ## Getting Started
 1. Set up your app and add a bot on the Discord developer portal.
