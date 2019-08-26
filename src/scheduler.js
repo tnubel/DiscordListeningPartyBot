@@ -1,0 +1,145 @@
+import { Permissions } from 'discord.js';
+const moment = require('moment-timezone');
+
+import botFormatter from './botFormatter.js'
+import { validateParty } from './businesslogic.js';
+
+var initScheduler = (dataLayer) => {
+  return {
+    scheduleParty: async (party, owner) => {
+      var { guild, guildId, channel, channelId, topic, start, end } = party;
+
+      const conflicts = await dataLayer.getPartiesInRange(moment(start).toDate(), moment(end).toDate(), guildId, channelId);
+      if (conflicts.length === 0) {
+        const result = await dataLayer.createParty(party, owner);
+        return botFormatter.renderPartyScheduledResult(result.id, topic, start, end, owner, channel);
+      }
+      else {
+        return botFormatter.errorMessages.SCHEDULE_FAILURE_CONFLICTS_EXIST;
+      }
+    },
+    getUpcoming: async (guildId, channelId, timezone = null) => {
+      const parties = await dataLayer.getPartiesInRange(moment().toDate(), moment().add(72, "hours").toDate(), guildId, channelId);
+      //Map each party to embedded field, pulling in enrollment data.
+      var fields = await Promise.all(parties.map(async p => {
+        const enrollments = await dataLayer.getEnrollmentsForParty(p.id);
+        return botFormatter.renderUpcomingParty(p, enrollments, timezone);
+      }));
+
+      return fields;
+    },
+    joinParty: async (guildId, channelId, userId, userTag, partyId) => {
+      /*
+      2 - Ensure user isn't already enrolled for party
+      3 - Add entry
+      */
+
+      var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
+      if (matchingParty === null) {
+        return botFormatter.errorMessages.noPartyFound(partyId);
+      }
+      var existingEnrollment = await dataLayer.findEnrollment(userId, partyId);
+
+      if (existingEnrollment) {
+        return botFormatter.errorMessages.PARTY_ALREADY_JOINED;
+      }
+
+      await dataLayer.enrollUser(userId, userTag, partyId);
+
+      return botFormatter.messages.userJoinedParty(userTag, partyId, matchingParty.topic);
+    },
+    findAndFlagListeningPartiesHappeningSoon: async () => {
+      /*
+        1. Find listening parties with pingSent false that are happening within 10 minutes.
+        2. Set pingSent to true.
+        3. Ping them - compose message and send it.
+      */
+      var messagesToSend = [];
+      var partiesToPing = await dataLayer.getPartiesHappeningSoon();
+      await dataLayer.markPartiesHappeningSoonAsPinged();
+      await Promise.all(partiesToPing.map(async party => {
+        var enrollments = await dataLayer.getEnrollmentsForParty(party.id);
+        messagesToSend.push({
+          users: enrollments.map(e => "<@" + e.userId + ">"),
+          channel: party.channelId,
+          guild: party.guildId,
+          topic: party.topic,
+          owner: party.username,
+          start: party.start,
+        });
+      }));
+      console.log(messagesToSend);
+      return messagesToSend;
+    },
+    cancelParty: async (guildId, channelId, member, partyId) => {
+      //Make sure party exists, is in future and is in this channel
+      var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
+      if (matchingParty === null) {
+        return botFormatter.errorMessages.noPartyFound(partyId);
+      }
+
+      //User must be owner or able to manage messages
+      const isOwner = matchingParty.username.toString() == member.user.tag.toString();
+      const isMod = member.hasPermission(Permissions.FLAGS.MANAGE_MESSAGES);
+      if (!isOwner && !isMod) {
+        return botFormatter.errorMessages.NO_PERMISSIONS;
+      }
+
+      const deletedCount = await dataLayer.deletePartyById(guildId, channelId, partyId);
+
+      if (deletedCount > 0) {
+        return botFormatter.messages.partyCanceled(partyId, matchingParty.topic);
+      }
+      else {
+        return botFormatter.errorMessages.CANT_CANCEL_PARTY;
+      }
+    },
+    updateParty: async (guildId, channelId, member, partyId, start, timeZone, duration) => {
+      //Make sure party exists, is in future and is in this channel
+      var matchingParty = await dataLayer.findPartyById(guildId, channelId, partyId);
+      if (matchingParty === null) {
+        return botFormatter.errorMessages.noPartyFound(partyId);
+      }
+
+      //User must be owner or able to manage messages
+      const isOwner = matchingParty.username.toString() == member.user.tag.toString();
+      const isMod = member.hasPermission(Permissions.FLAGS.MANAGE_MESSAGES);
+      if (!isOwner && !isMod) {
+        return botFormatter.errorMessages.NO_PERMISSIONS;
+      }
+
+      const { party, errors } = validateParty({
+        topic: matchingParty.topic,
+        dateTime: start,
+        duration,
+        timeZone,
+        guild: matchingParty.guild,
+        guildId: matchingParty.guildId,
+        channel: matchingParty.channel,
+        channelId: matchingParty.channelId,
+      });
+      var response = "";
+      if (errors.length > 0) {
+        response = botFormatter.generatePartyCreationErrors(errors);
+        return response;
+      }
+
+      const updatedCount = await dataLayer.updateParty(partyId, {
+        start: party.start,
+        end: party.end,
+        timeZone: party.timeZone,
+      });
+
+      if (updatedCount > 0) {
+        return botFormatter.renderPartyScheduledResult(partyId, matchingParty.topic, party.start, party.end, member.user.tag, matchingParty.channel);
+      }
+      else {
+        return botFormatter.errorMessages.CANT_UPDATE_PARTY;
+      }
+    }
+  }
+};
+
+export {
+  initScheduler
+};

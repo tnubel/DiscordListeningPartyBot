@@ -1,0 +1,27 @@
+{
+  "name": "listeningpartyscheduler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node lib/bot.js",
+    "build": "babel --presets es2015 -d lib/ src",
+    "test": "npm run build && mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.26",
+    "node-cron": "^2.0.3",
+    "sequelize": "^5.15.2",
+    "sqlite3": "^4.1.0",
+    "string-argv": "^0.3.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "mocha": "^6.2.0"
+  }
+}
