@@ -68,7 +68,6 @@ var initScheduler = (dataLayer) => {
           start: party.start,
         });
       }));
-      console.log(messagesToSend);
       return messagesToSend;
     },
     cancelParty: async (guildId, channelId, member, partyId) => {

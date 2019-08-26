@@ -64,7 +64,6 @@ client.on('message', msg => {
     * Schedule
     !lpschedule [Topic] [Date] [Timezone] [Duration]
     */
-    console.log(tokenizedMsg);
     try {
       if (tokenizedMsg.length != 5) {
         msg.channel.send(botFormatter.errorMessages.INCORRECT_NUMBER_ARGUMENTS);

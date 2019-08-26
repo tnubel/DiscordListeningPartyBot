@@ -2,7 +2,7 @@
   "name": "listeningpartyscheduler",
   "version": "1.0.0",
   "description": "",
-  "main": "bot.js",
+  "main": "lib/bot.js",
   "scripts": {
     "start": "node lib/bot.js",
     "build": "babel --presets es2015 -d lib/ src",
