@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^11.5.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "moment-timezone": "^0.5.26",
     "node-cron": "^2.0.3",
     "sequelize": "^5.15.2",
